@@ -1,0 +1,145 @@
+*/
+* Copyright (c) 2024, Shiv Nadar University, Delhi NCR, India. All Rights
+
+* Reserved. Permission to use, copy, modify and distribute this software for
+
+* educational, research, and not-for-profit purposes, without fee and without a
+
+* signed license agreement, is hereby granted, provided that this paragraph and
+
+* the following two paragraphs appear in all copies, modifications, and
+
+* distributions.
+
+*
+
+* IN NO EVENT SHALL SHIV NADAR UNIVERSITY BE LIABLE TO ANY PARTY FOR DIRECT,
+
+* INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST
+
+* PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE.
+
+*
+
+* SHIV NADAR UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT
+
+* NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+
+* PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS PROVIDED "AS IS". SHIV
+
+* NADAR UNIVERSITY HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+
+* ENHANCEMENTS, OR MODIFICATIONS.
+
+
+*Revision History:
+
+*Date          By                     Change Notes
+
+*------------  ---------------------- ------------------------------------------
+*8 April 2024    Sejal Singh            Template containing reusable blocks
+******************************************************************************/
+
+
+simulator lang=spice
+.global GND
+.param w1=120u w2=12u
+
+* Include the model file
+.include "/home2/install_old/FOUNDRY/analog/45nm/gpdk045/"
+.include "/home2/ss147/PROJECT/mod_amp/veriloga/veriloga.va"
+
+VDD Vdd 0 DC 1.2
+
+* Block:INVschmitt
+.subckt INVschmitt Vout Vin Vdd GND
+* PMOS transistor
+PM1 N1 Vin Vdd Vdd g45p1svt w=120n l=45n
+PM2 Vout Vin N1 Vdd g45p1svt w=120n l=45n  
+PM3 0 Vout N1 Vdd g45p1svt w=120n l=45n
+* NMOS transistor
+NM1 Vout Vin N2 0 g45n1svt w=120n l=45n 
+NM2 N2 Vin 0 0 g45n1svt w=120n l=45n  
+NM3 Vdd Vout N2 g45n1svt w=120n l=45n 
+.ends INVschmitt
+
+* Block:2_NAND
+.subckt 2_NAND i1 i2 Vout Vdd GND
+NM1 Vout i1 N1 0 g45n1svt w=120n l=45n
+NM2 N1 i2 0 0 g45n1svt w=120n l=45n
+PM1 Vout i1 Vdd Vdd g45p1svt w=120n l=45n
+PM2 Vout i2 Vdd Vdd g45p1svt w=120n l=45n
+.ends 2_NAND
+
+* Block:INV
+.subckt INV Vout Vin Vdd GND
+NM1 Vout Vin 0 0 g45n1svt w=120n l=45n
+PM1 Vout Vin Vdd Vdd g45p1svt w=120n l=45n
+.ends INV
+
+* Block:TR1
+.subckt TR1  Imi Qcmi1 Swmi Vam Vdd GND
+* NMOS Transistors
+NM1 N1 Qcmi1b 0 0 g45n1svt w=w2 l=45n 
+NM2 N1 Vcn 0 0 g45n1svt w=w1 l=45n 
+NM3 Imi Swmi N1 0 g45n1svt w=120n l=45n 
+
+* PMOS Transistors
+PM1 Imi Swmib N1 Vdd g45p1svt w=120n l=45n 
+PM2 N1 Qcmi1b Vdd Vdd g45p1svt w=w2 l=45n 
+PM3 N1 Vcp Vdd Vdd g45p1svt w=w1 l=45n 
+
+* Logic gates
+XI1 Qcmi1b Qcmi1 INV
+XI2 Vcnb Qcmi1b Vam 2_NAND
+XI3 Vcp Vam Qcmi1 2_NAND
+XI4 Vcn Vcnb INV
+XI5 Swmib Swmi INV
+.ends TR1
+
+* Block:TR2
+.subckt TR2 in out Qcmik Vik Vdd GND
+XI5 Vik Vikb INV
+XI4 Qcmik Qcmikb INV
+
+* NMOS Transistors
+NM4 in N2 out 0 g45n1svt w=120n l=45n 
+NM3 Vi2 Qcmikb N2 0 g45n1svt w=120n l=45n 
+NM2 N1 Qcmik Vik 0 g45n1svt w=120n l=45n 
+NM1 N1 Qcmikb Vikb 0 g45n1svt w=120n l=45n 
+NM0 Vikb Qcmik N2 0 g45n1svt w=120n l=45n
+
+*PMOS Transistors
+PM4 Vik Qcmik N2 Vdd g45p1svt w=120n l=45n 
+PM3 Vikb Qcmikb N2 Vdd g45p1svt w=120n l=45n 
+PM2 N1 Qcmik Vikb Vdd g45p1svt w=120n l=45n 
+PM1 N1 Qcmikb Vik Vdd g45p1svt w=120n l=45n
+PM0 in N1 out Vdd g45p1svt w=120n l=45n
+.ends TR2
+
+* Block:XOR
+.subckt XOR i1 i2 Out
+I3 Out net9 net8 2_NAND
+I2 net7 i1 i2 2_NAND
+I1 net8 net7 i2 2_NAND
+I0 net9 i1 net7 2_NAND
+.ends XOR
+
+* Block:3_NAND
+.subckt 3_NAND i1 i2 i3 Out Vdd GND
+PM2 Out i3 Vdd Vdd g45p1svt w=120n l=45n
+PM1 Out i2 Vdd Vdd g45p1svt w=120n l=45n
+PM0 Out i1 Vdd Vdd g45p1svt w=120n l=45n
+NM2 net16 i3 0 0 g45n1svt w=120n l=45n
+NM1 net17 i2 net16 0 g45n1svt w=120n l=45n
+NM0 Out i1 net17 0 g45n1svt w=120n l=45n
+.ends 3_NAND
+
+*for POS with M-clauses we need M-input NAND gate for DVC
+
+* Block:sw
+.subckt sw out in EN Vdd GND
+NM1 in EN out 0 g45n1svt w=120n l=45n
+PM1 Out ENb in Vdd  g45p1svt w=120n l=45n
+I0 ENb EN INV
+.ends sw
