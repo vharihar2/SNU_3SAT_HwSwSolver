@@ -270,7 +270,7 @@ def main():
     matrix = input_matrix()
     display_pos(matrix)
     #source file containing the definition of reusable blocks like tunable resisitors (i.e. TR1 & TR2) and the logic gates used 
-    source_file_path = 'blocks.ckt'
+    source_file_path = "AnalogSATsolverNetlistTemplate.scs"
     #destination file in which the final netlist will be written
     destination_file_path = "generated_netlist.sp"
     #contents of source file being copied into  destination file line by line
