@@ -1,9 +1,9 @@
 # 3-SATSolver
 # Netlist Generator
-#Project Title: Analog Hardware for Solving the Boolean Satisfiability Problem
+Project Title: Analog Hardware for Solving the Boolean Satisfiability Problem
 ## Overview
 
-This Python script generates a SPICE netlist based on the input matrix for CNF. It can be used for solving any 3-SAT problem containing at most 3 literals per clause. It is based on implementing the existing AC-SAT analog hardware solution.The script allows for the input, analysis, and netlist generation of a given set of clauses and variables, contributing significantly to the field of computational electronics.
+This Python script generates a SPICE netlist based on the input matrix for CNF. It can be used for solving any 3-SAT problem containing at most 3 literals per clause. It is based on expanding the existing AC-SAT analog hardware solution. The script allows for the input, analysis, and netlist generation of a given set of clauses and variables, contributing significantly to the field of computational electronics.
 
 ## License
 
