@@ -2,9 +2,10 @@ simulator lang=spice
 .global GND
 .param w1=120u w2=12u
 
-* Include the model file
-.include "/home2/install_old/FOUNDRY/analog/45nm/gpdk045/"
-.include "/home2/ss147/PROJECT/mod_amp/veriloga/veriloga.va"
+* Include the model files 
+.include "gpdk045"
+*a Verilog-A behavioural model for an op-amp
+.include "mod_amp/veriloga/veriloga.va"
 
 VDD Vdd 0 DC 1.2
 
