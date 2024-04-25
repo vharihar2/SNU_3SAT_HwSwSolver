@@ -1,103 +1,112 @@
+
+simulator lang = spectre
+ahdl_include "/home2/ss147/PROJECT/mod_amp/veriloga/veriloga.va"
+include "/home2/install_old/FOUNDRY/analog/45nm/models/spectre/gpdk045.scs" section=tt
+simulatorOptions options
++ soft_bin=allmodels
+simulatorOptions options psfversion="1.1.0" reltol=1e-3 vabstol=1e-6 \
+    iabstol=1e-12 temp=27 tnom=27 scalem=1.0 scale=1.0 gmin=1e-12 rforce=1 \
+    maxnotes=5 maxwarns=5 digits=5 cols=80 pivrel=1e-3 \
+    sensfile="../psf/sens.output" checklimitdest=psf 
+tran tran stop=100p write="spectre.ic" writefinal="spectre.fc" \
+    annotate=status maxiters=5 
+finalTimeOP info what=oppoint where=rawfile
+modelParameter info what=models where=rawfile
+element info what=inst where=rawfile
+outputParameter info what=output where=rawfile
+designParamVals info what=parameters where=rawfile
+primitives info what=primitives where=rawfile
+subckts info what=subckts where=rawfile
+saveOptions options save=allpub
+
 simulator lang=spice
-.global GND
+.global Vdd
+Vdd Vdd 0 DC 1.2
 .param w1=120u w2=12u
 
-* Include the model files 
-.include "gpdk045"
-*a Verilog-A behavioural model for an op-amp
-.include "mod_amp/veriloga/veriloga.va"
-
-VDD Vdd 0 DC 1.2
+* Block:INV
+.subckt INV Vout Vin
+MNM1 Vout Vin 0 0 g45n1svt w=120n l=45n
+MPM1 Vout Vin Vdd Vdd g45p1svt w=120n l=45n
+.ends INV 
 
 * Block:INVschmitt
-.subckt INVschmitt Vout Vin Vdd GND
-* PMOS transistor
-PM1 N1 Vin Vdd Vdd g45p1svt w=120n l=45n
-PM2 Vout Vin N1 Vdd g45p1svt w=120n l=45n  
-PM3 0 Vout N1 Vdd g45p1svt w=120n l=45n
-* NMOS transistor
-NM1 Vout Vin N2 0 g45n1svt w=120n l=45n 
-NM2 N2 Vin 0 0 g45n1svt w=120n l=45n  
-NM3 Vdd Vout N2 g45n1svt w=120n l=45n 
+.subckt INVschmitt Vout Vin 
+*PMOS transistor
+MPM1 N1 Vin Vdd Vdd g45p1svt w=120n l=45n
+MPM2 Vout Vin N1 Vdd g45p1svt w=120n l=45n  
+MPM3 0 Vout N1 Vdd g45p1svt w=120n l=45n
+*NMOS transistor
+MNM1 Vout Vin N2 0 g45n1svt w=120n l=45n 
+MNM2 N2 Vin 0 0 g45n1svt w=120n l=45n  
+MNM3 Vdd Vout N2 0 g45n1svt w=120n l=45n 
 .ends INVschmitt
 
-* Block:2_NAND
-.subckt 2_NAND i1 i2 Vout Vdd GND
-NM1 Vout i1 N1 0 g45n1svt w=120n l=45n
-NM2 N1 i2 0 0 g45n1svt w=120n l=45n
-PM1 Vout i1 Vdd Vdd g45p1svt w=120n l=45n
-PM2 Vout i2 Vdd Vdd g45p1svt w=120n l=45n
-.ends 2_NAND
+* Block:NAND2
+.subckt NAND2 i1 i2 Vout 
+MNM1 Vout i1 N1 0 g45n1svt w=120n l=45n
+MNM2 N1 i2 0 0 g45n1svt w=120n l=45n
+MPM1 Vout i1 Vdd Vdd g45p1svt w=120n l=45n
+MPM2 Vout i2 Vdd Vdd g45p1svt w=120n l=45n
+.ends NAND2
 
-* Block:INV
-.subckt INV Vout Vin Vdd GND
-NM1 Vout Vin 0 0 g45n1svt w=120n l=45n
-PM1 Vout Vin Vdd Vdd g45p1svt w=120n l=45n
-.ends INV
+* Block:NAND3
+.subckt NAND3 i1 i2 i3 Out 
+MPM2 Out i3 Vdd Vdd g45p1svt w=120n l=45n
+MPM1 Out i2 Vdd Vdd g45p1svt w=120n l=45n
+MPM0 Out i1 Vdd Vdd g45p1svt w=120n l=45n
+MNM2 net16 i3 0 0 g45n1svt w=120n l=45n
+MNM1 net17 i2 net16 0 g45n1svt w=120n l=45n
+MNM0 Out i1 net17 0 g45n1svt w=120n l=45n
+.ends NAND3
 
-* Block: TR1
-.subckt TR1  Imi Qcmi1 Swmi Vam Vdd GND
-* NMOS Transistors
-NM1 N1 Qcmi1b 0 0 g45n1svt w=w2 l=45n 
-NM2 N1 Vcn 0 0 g45n1svt w=w1 l=45n 
-NM3 Imi Swmi N1 0 g45n1svt w=120n l=45n 
+* Block:XOR
+.subckt XOR i1 i2 Out
+X3 net9 net8 Out NAND2
+X2 i2 net7 net8 NAND2
+X1 i1 net7 net9 NAND2
+X0 i1 i2 net7 NAND2
+.ends XOR
 
-* PMOS Transistors
-PM1 Imi Swmib N1 Vdd g45p1svt w=120n l=45n 
-PM2 N1 Qcmi1b Vdd Vdd g45p1svt w=w2 l=45n 
-PM3 N1 Vcp Vdd Vdd g45p1svt w=w1 l=45n 
-
-* Logic gates
+* Block:TR1
+.subckt TR1 Imi Qcmi1 Swmi Vam
+*NMOS Transistors
+MNM1 N1 Qcmi1b 0 0 g45n1svt w=w2 l=45n 
+MNM2 N1 Vcn 0 0 g45n1svt w=w1 l=45n 
+MNM3 Imi Swmi N1 0 g45n1svt w=120n l=45n 
+*PMOS Transistors
+MPM1 Imi Swmib N1 Vdd g45p1svt w=120n l=45n 
+MPM2 N1 Qcmi1b Vdd Vdd g45p1svt w=w2 l=45n 
+MPM3 N1 Vcp Vdd Vdd g45p1svt w=w1 l=45n 
+*Logic gates
 XI1 Qcmi1b Qcmi1 INV
-XI2 Vcnb Qcmi1b Vam 2_NAND
-XI3 Vcp Vam Qcmi1 2_NAND
+XI2 Qcmi1b Vam Vcnb NAND2
+XI3 Vam Qcmi1 Vcp NAND2
 XI4 Vcn Vcnb INV
 XI5 Swmib Swmi INV
 .ends TR1
 
 * Block:TR2
-.subckt TR2 in out Qcmik Vik Vdd GND
-XI5 Vik Vikb INV
-XI4 Qcmik Qcmikb INV
-
-* NMOS Transistors
-NM4 in N2 out 0 g45n1svt w=120n l=45n 
-NM3 Vi2 Qcmikb N2 0 g45n1svt w=120n l=45n 
-NM2 N1 Qcmik Vik 0 g45n1svt w=120n l=45n 
-NM1 N1 Qcmikb Vikb 0 g45n1svt w=120n l=45n 
-NM0 Vikb Qcmik N2 0 g45n1svt w=120n l=45n
-
+.subckt TR2 in out Qcmik Vik
+XI5 Vikb Vik INV
+XI4 Qcmikb Qcmik INV
+*NMOS Transistors
+MNM4 in N2 out 0 g45n1svt w=120n l=45n 
+MNM3 Vi2 Qcmikb N2 0 g45n1svt w=120n l=45n 
+MNM2 N1 Qcmik Vik 0 g45n1svt w=120n l=45n 
+MNM1 N1 Qcmikb Vikb 0 g45n1svt w=120n l=45n 
+MNM0 Vikb Qcmik N2 0 g45n1svt w=120n l=45n
 *PMOS Transistors
-PM4 Vik Qcmik N2 Vdd g45p1svt w=120n l=45n 
-PM3 Vikb Qcmikb N2 Vdd g45p1svt w=120n l=45n 
-PM2 N1 Qcmik Vikb Vdd g45p1svt w=120n l=45n 
-PM1 N1 Qcmikb Vik Vdd g45p1svt w=120n l=45n
-PM0 in N1 out Vdd g45p1svt w=120n l=45n
+MPM4 Vik Qcmik N2 Vdd g45p1svt w=120n l=45n 
+MPM3 Vikb Qcmikb N2 Vdd g45p1svt w=120n l=45n 
+MPM2 N1 Qcmik Vikb Vdd g45p1svt w=120n l=45n 
+MPM1 N1 Qcmikb Vik Vdd g45p1svt w=120n l=45n
+MPM0 in N1 out Vdd g45p1svt w=120n l=45n
 .ends TR2
 
-* Block: XOR
-.subckt XOR i1 i2 Out
-I3 Out net9 net8 2_NAND
-I2 net7 i1 i2 2_NAND
-I1 net8 net7 i2 2_NAND
-I0 net9 i1 net7 2_NAND
-.ends XOR
-
-* Block:3_NAND
-.subckt 3_NAND i1 i2 i3 Out Vdd GND
-PM2 Out i3 Vdd Vdd g45p1svt w=120n l=45n
-PM1 Out i2 Vdd Vdd g45p1svt w=120n l=45n
-PM0 Out i1 Vdd Vdd g45p1svt w=120n l=45n
-NM2 net16 i3 0 0 g45n1svt w=120n l=45n
-NM1 net17 i2 net16 0 g45n1svt w=120n l=45n
-NM0 Out i1 net17 0 g45n1svt w=120n l=45n
-.ends 3_NAND
-
-*for POS with M-clauses we need an M-input NAND gate for DVC
-
-* Block: sw
-.subckt sw out in EN Vdd GND
-NM1 in EN out 0 g45n1svt w=120n l=45n
-PM1 Out ENb in Vdd  g45p1svt w=120n l=45n
-I0 ENb EN INV
+* Block:sw
+.subckt sw out in EN 
+MNM1 in EN out 0 g45n1svt w=120n l=45n
+MPM1 out ENb in Vdd g45p1svt w=120n l=45n
+X0 ENb EN INV
 .ends sw
