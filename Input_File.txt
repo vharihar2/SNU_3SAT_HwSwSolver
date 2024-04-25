@@ -1,0 +1,24 @@
+# Example Input File for CNF Matrix
+# The matrix represents the CNF: {A' + B' + C'}{D + E' + F'}{A + B + C}
+# Each row represents a clause, and each column represents a variable where:
+# 1 means the variable is present, -1 means the variable is negated
+# 0 means the variable is absent.
+# Matrix values (enter row by row, use space to separate values in a row):
+# An example of the input written in the text file looks like this:
+-1 -1 -1 0 0 0 
+0 0 0 1 -1 -1
+1 1 1 0 0 0
+
+# Notes:
+#  Ensure each line corresponds to one clause in your CNF formula.
+#  This file format supports an arbitrary number of variables, but each line must 
+#  have the same number of entries for consistency.
+#  This format allows easy parsing and usage  
+#  in simulations or solvers requiring CNF input.
+
+
+
+
+
+
+
