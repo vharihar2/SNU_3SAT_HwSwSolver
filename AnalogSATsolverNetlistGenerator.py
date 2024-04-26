@@ -25,12 +25,30 @@ Revision History:
                                        debugging and change in the method of input 
                                        & m-input NAND gate function.
                                        
+  27 April 2024   Sejal Singh          Added elaborate comments for the functions
+                                       used
+                                       
 ################################################################################
 """
 
 def main():
+
+
       
     def input_matrix(file_path):
+        """
+    Read a matrix from a file, excluding comment lines and empty lines.
+
+    This function opens a file from the specified path and reads its contents to form a matrix.
+    Each line in the file represents a row in the matrix, but lines that start with '#' (comments)
+    or are completely empty are ignored. Each row is split into integers, forming the matrix.
+
+    Parameters:
+    file_path (str): The path to the file containing the matrix data.
+
+    Returns:
+    list[list[int]]: A 2D list of integers forming the matrix read from the file.
+    """
         with open(file_path, 'r') as file:
         # Read all lines in the file
             lines = file.readlines()
@@ -47,8 +65,21 @@ def main():
         return matrix
     
     
+
     def display_pos(matrix):
-        #display the input matrix in form of POS or CNF
+        """
+    Display the matrix as clauses in either POS (Positive) or CNF (Conjunctive Normal Form) notation.
+
+    This function takes a matrix where each row represents a clause, and each element in the row
+    represents the state of a variable in the clause (1, -1, or 0). It then formats and prints
+    each clause in a readable logical expression where 'xN' represents the N-th variable:
+    - 'xN' for a positive variable (1),
+    - 'xN'' (xN prime) for a negative variable (-1),
+    - Skips the variable if its state is 0.
+
+    Parameters:
+    matrix (list[list[int]]): The matrix where each row represents a clause.
+    """
         for row in matrix:
             clause = []
             for i, val in enumerate(row):
@@ -59,22 +90,28 @@ def main():
             print(f"({' OR '.join(clause)})")
 
 
+
     def find_first_non_zero(clause):
         """
-        Find the index of the first non-zero variable in a clause.
+    Find the index of the first non-zero variable in a clause.
 
-        Parameters:
-        clause (list): The clause represented as a list of variable states.
+    This function scans through a list representing a clause and returns the index of the first element
+    that is non-zero. This is useful in algorithms that need to identify the first significant variable
+    in a clause for further processing.
 
-        Returns:
-        int or None: The index of the first non-zero variable, or None if all are zero.
-        """
+    Parameters:
+    clause (list): The clause represented as a list of variable states.
+
+    Returns:
+    int or None: The index of the first non-zero variable, or None if all variables are zero.
+    """
         for index, var in enumerate(clause):
             if var != 0:
                 return index
         return None
-
-      
+    
+    
+    #function to find the index of the last non-zero variable
     """ def find_last_non_zero(clause):
         last_index = None
         for index, var in enumerate(clause):
@@ -82,8 +119,27 @@ def main():
                 last_index = index
         return last_index"""
 
-      
+
+
     def generate_avc_element(clause_matrix):
+        """
+    Generates the netlist for an Auxiliary Variable Circuit (AVC) based on the given matrix of clauses.
+
+    This function constructs a SPICE-like netlist describing the internal connections of an AVC block.
+    Each row in the input matrix represents a clause, and each element in the row indicates the state
+    of a variable in the clause (non-zero means the variable is active). The function iterates over
+    each clause, adds subcircuit headers, and creates connections based on the state of each variable.
+    It handles the first non-zero variable in each clause specially to differentiate its connections.
+    Other non-zero variables are connected in series using transistors. The function also adds components
+    like operational amplifiers and capacitors specific to each clause's subcircuit.
+
+    Parameters:
+    clause_matrix (list[list[int]]): A matrix where each row represents a clause and each element
+    in a row represents the state of a variable in the clause (1 for positive, -1 for negative, 0 for inactive).
+
+    Returns:
+    str: A string containing the complete netlist for the AVC based on the given clause matrix.
+    """
         #Function to write netlist of internal connections of AVC block according to every clause 
         avc_netlist = ""
         net_counter=1 #to keep count of the nets in each subcircuit
@@ -122,9 +178,34 @@ def main():
             avc_netlist += f"XI{clause_id}_2 net0 Vam{clause_id+1} EN sw\n"
             avc_netlist += f".ends avc{clause_id+1}\n\n"  
         return avc_netlist
+    
 
-      
+    
     def generate_avc_top_element(clause_matrix):
+        """
+    Generates the top-level netlist for an Auxiliary Variable Circuit (AVC) using a matrix of clauses.
+
+    This function constructs the top-level netlist for an AVC by defining a subcircuit that integrates
+    multiple internal AVC subcircuits, each corresponding to a clause from the clause matrix. It creates
+    connections between the inputs of the top-level AVC block and the inputs of each internal AVC
+    subcircuit, as well as manages the output nets.
+
+    The function iterates over the variables and clauses in the matrix to generate appropriate connections
+    for each AVC subcircuit within the top-level AVC block. It includes the necessary inputs for each
+    clause subcircuit based on active variables in the clause and instantiates each internal AVC subcircuit.
+
+    After constructing the top-level AVC netlist, this function calls `generate_avc_element` to get
+    the netlists for individual AVC clauses and combines them with the top-level netlist to form
+    a complete AVC system netlist.
+
+    Parameters:
+    clause_matrix (list[list[int]]): A matrix where each row represents a clause, and each element
+    in a row represents the state of a variable in the clause (1 for positive, -1 for negative, 0 for inactive).
+
+    Returns:
+    str: A string containing the complete netlist for the AVC, including both the top-level and
+    individual clause-level netlists.
+    """
         #function for creating a top module for the AVC block connecting the internal avc element pins to outside circuit 
         top_avc_netlist = "* Top Level AVC Block\n"
         top_avc_netlist += ".subckt AVC EN"
@@ -148,9 +229,30 @@ def main():
         avc_netlist = generate_avc_element(clause_matrix)
         complete_netlist = avc_netlist + top_avc_netlist
         return complete_netlist
+    
 
-      
+
     def generate_sdc_element(matrix):
+        """
+    Generates a SPICE netlist for a Signal Dynamic Circuit (SDC) block using a matrix
+    where each row represents a different clause and each column
+    corresponds to a variable in the CNF.
+
+    This function constructs a subcircuit for the SDC block, where each variable has a dedicated
+    branch that handles different states according to the matrix. The netlist includes transistor
+    instances (TR1 and TR2) for logic processing, resistance for convergence, and capacitors for
+    stability or delay purposes. The output is modulated through inverters and Schmitt triggers
+    to produce a cleaned and stabilized output signal for each variable.
+
+    Parameters:
+    matrix (list[list[int]]): A 2D list where each row represents a clause and each element
+                              in a row represents the state of a variable (1 for positive, -1 for negative, 
+                              and 0 for inactive).
+
+    Returns:
+    str: A string containing the complete netlist for the SDC block. This netlist can be used
+         directly in SPICE simulations to model the described configurable logic behavior.
+    """
         #function for generating the SDC block connections
         netlist = "*Element in SDC\n"
         netlist += f".subckt SDC"
@@ -200,15 +302,32 @@ def main():
                 netlist += f"XInv_{var_id+1} Q{var_id+1} Q{var_id+1}bar INV\n"
         netlist += f".ends SDC\n"
         return netlist
+    
 
-      
+
     def generate_n_input_nand_netlist(n):
         """
-        Generates a SPICE netlist for an m-input NAND gate using CMOS technology.
+    Generates a SPICE netlist for an n-input NAND gate using CMOS technology.
 
-        :param n: The number of inputs to the NAND gate
-        :return: A string containing the SPICE netlist
-        """
+    The function constructs the SPICE netlist description for an n-input NAND gate,
+    including both PMOS and NMOS transistor networks. The PMOS transistors are connected
+    in parallel to ensure that the output is high when any input is low. The NMOS
+    transistors are connected in series, ensuring that the output is low only when all
+    inputs are high.
+
+    The netlist includes a subcircuit definition with input and output terminals,
+    transistor definitions for both PMOS and NMOS, and connections for the transistors.
+    Each transistor is defined with specific model parameters and dimensions appropriate
+    for 45 nm technology nodes.
+
+    Parameters:
+    n (int): The number of inputs to the NAND gate, specifying how many PMOS and NMOS
+             transistors will be included in the netlist.
+
+    Returns:
+    str: A string containing the complete SPICE netlist for the described n-input NAND gate.
+         This netlist can be used directly in SPICE simulations.
+    """
         header = f"* SPICE Netlist for a {n}-input NAND gate\n"
         subckt = f".subckt NAND{n} " + " ".join([f"in{i}" for i in range(1, n+1)]) + " Out \n"
 
@@ -237,9 +356,26 @@ def main():
         # Combine all parts
         netlist = header + subckt + pmos_transistors + nmos_transistors + footer
         return netlist
+    
 
    
     def generate_dvc_element(matrix):
+        """
+    Generates a SPICE netlist for a Digital Verification Circuit (DVC) from a given matrix.
+
+    This function translates a matrix, where each row represents a clause in CNF, into a DVC using
+    XOR and NAND gates to simulate the clause logic. The matrix uses 1 for true, -1 for false, and 0
+    for an inactive variable. Each clause is processed to create a subcircuit with XOR gates representing
+    the variable states and a NAND gate combining these states. The overall output of all clauses is
+    combined using another NAND gate to produce a single output indicating SATisfiability.
+
+    Parameters:
+    matrix (list[list[int]]): Matrix where each row represents a clause with integers indicating variable
+                              states (1 for true, -1 for false, 0 for inactive).
+
+    Returns:
+    str: A complete netlist string for the DVC that can be used in SPICE simulations.
+    """
         #function for creating DVC block connections 
         netlist = "* SPICE Netlist for Digital Verification Circuit (DVC)\n"
         #header for subcircuit
@@ -288,35 +424,37 @@ def main():
         net_counter += 1
         netlist += f".ends DVC\n"
         return netlist
+    
 
 
-      
     #Commands to run
     matrix = input_matrix('C:\\Users\\Sejal\\Desktop\\Input_File.txt')
     display_pos(matrix)
-      
+
     #source file containing the definition of reusable blocks like tunable resisitors (i.e. TR1 & TR2) and the logic gates used 
     source_file_path = 'C:\\Users\\Sejal\\Desktop\\SNU\\Sem 8\\upload github\\blocks.ckt'
     #destination file in which the final netlist will be written
     destination_file_path = "C:\\Users\\Sejal\\Desktop\\netlist.sp"
+
     #contents of source file being copied into  destination file line by line
     with open(source_file_path, 'r') as source_file, open(destination_file_path, 'w') as destination_file:
         for line in source_file:
             destination_file.write(line)
-              
+
     num_variables = len(matrix[0]) #no of variables in CNF
     num_clauses=len(matrix) #no of clauses in CNF
-      
+
     netlist = f"\n"
     if num_clauses>3:
         netlist += generate_n_input_nand_netlist(num_clauses)
-          
+
     #combining all the elements in a single netlist
     netlist += generate_sdc_element(matrix)+"\n"+generate_avc_top_element(matrix)+"\n"+generate_dvc_element(matrix)+"\n\n" 
-      
+
     #adding the top module instantiation for SDC, AVC, DVC blocks
     netlist += f"*Top module instantiation\n"
     netlist += f"X1"
+
     # Add all input and output pins to the top-level SDC block
     for var_id in range(num_variables):
             netlist += f" Q{var_id+1}"
@@ -325,24 +463,27 @@ def main():
             netlist += f" Vam{clause_id+1}"
     netlist +=" SDC\n"
     netlist += f"X2 Vdd"   
+
     # Add all Vi inputs to the top-level AVC block
     for var_id in range(len(matrix[0])):
         netlist += f" V{var_id+1}"
+
     # Add all Vam outputs to the top-level AVC block
     for clause_id, clause in enumerate(matrix):
         netlist += f" Vam{clause_id+1}"
     netlist += f" AVC\n"
+
     # Add all input and output pins to the top-level DVC block
     netlist += f"X3 SAT"
     for var_id in range(num_variables):
             netlist += f" Q{var_id+1}"
     netlist += f" DVC\n"
-      
+
     #adding the analysis and printing of the solution 
     for var_id in range(num_variables):
         netlist += f".print tran V(Q{var_id+1})\n"
     netlist += f".print tran V(SAT)\n.end\n"
-      
+    
     #appending it all in destination file
     with open(destination_file_path, 'a') as destination_file:
         destination_file.write(netlist)
