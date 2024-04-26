@@ -334,7 +334,7 @@ def main():
         # Generate PMOS transistors
         pmos_transistors = ""
         for i in range(1, n + 1):
-            pmos_transistors += f"MP{i-1} Out i{i} Vdd Vdd g45p1svt w=120n l=45n\n"
+            pmos_transistors += f"MP{i-1} Out in{i} Vdd Vdd g45p1svt w=120n l=45n\n"
 
         # Generate NMOS transistors
         nmos_transistors = ""
@@ -349,7 +349,7 @@ def main():
             else:
                 drain = f"net{i-1}"
 
-            nmos_transistors += f"MN{i-1} {drain} i{i} {source} 0 g45n1svt w=120n l=45n\n"
+            nmos_transistors += f"MN{i-1} {drain} in{i} {source} 0 g45n1svt w=120n l=45n\n"
 
         footer = ".ends NAND" + str(n) + "\n\n"
 
