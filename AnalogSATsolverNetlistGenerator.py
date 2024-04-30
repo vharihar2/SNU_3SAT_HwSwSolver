@@ -1,3 +1,6 @@
+#
+#$Id: AnalogSATsolverNetlistGenerator.py,v 1.2 2024/04/30 05:20:48 ss147 Exp ss147 $
+#
 """
 ################################################################################
 Copyright (c) 2024, Shiv Nadar University, Delhi NCR, India. All Rights
@@ -428,13 +431,13 @@ def main():
 
 
     #Commands to run
-    matrix = input_matrix('C:\\Users\\Sejal\\Desktop\\Input_File.txt')
+    matrix = input_matrix('Input_File.txt')
     display_pos(matrix)
 
     #source file containing the definition of reusable blocks like tunable resisitors (i.e. TR1 & TR2) and the logic gates used 
-    source_file_path = 'C:\\Users\\Sejal\\Desktop\\SNU\\Sem 8\\upload github\\blocks.ckt'
+    source_file_path = 'AnalogSATsolverNetlistTemplate.scs'
     #destination file in which the final netlist will be written
-    destination_file_path = "C:\\Users\\Sejal\\Desktop\\netlist.sp"
+    destination_file_path = "netlist.sp"
 
     #contents of source file being copied into  destination file line by line
     with open(source_file_path, 'r') as source_file, open(destination_file_path, 'w') as destination_file:
