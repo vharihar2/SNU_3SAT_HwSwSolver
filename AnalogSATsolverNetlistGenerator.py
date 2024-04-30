@@ -20,17 +20,18 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 
 Revision History:
-      Date          By                     Change Notes
- ------------  ---------------------- ------------------------------------------
-  8 April 2024    Sejal Singh                 Netlist generation code
+Date        By            Change Notes
+----------- ------------- ------------------------------------------
+ 8 Apr 2024 Sejal Singh   Netlist generation code
   
-  26 April 2024   Sejal Singh          Edits made according to Spectre simulation
-                                       debugging and change in the method of input 
-                                       & m-input NAND gate function.
+26 Apr 2024 Sejal Singh   Edits made according to Spectre simulation
+                          debugging and change in the method of input 
+                          & m-input NAND gate function.
                                        
-  27 April 2024   Sejal Singh          Added elaborate comments for the functions
-                                       used
-                                       
+27 Apr 2024 Sejal Singh   Added elaborate comments for the functions used
+30 Apr 2024 Venkat H      Removed Windows-specific path usage, and made it
+                          OS-agnostic
+ 
 ################################################################################
 """
 
