@@ -1,1 +1,11 @@
+# <directory or file filter> <user or group>
+#More details about CODEOWNERS is at:
+#  https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
+#A spec occuring later in this file overrides that occuring earlier, as regards permissions on the "intersecting" file/dir specs bween the 2 specs.
+
+#Uncomment the below line to give write access to all files in this repository to @CasperWhite13 and @NeroKode
+#/* @vharihar2 @SejalS01   #All code co-owned by Sejal and me
+
+#Uncomment the below line to give write access on all files in .github subdir to only myself
+#/.github/ @vharihar2      #Except the CODEOWNERS file itself (and anything else in .github) on which I alone have control
