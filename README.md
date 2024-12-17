@@ -2,7 +2,7 @@
 # Netlist Generator
 
 ## Overview
-This code dynamically generates and simulates a circuit netlist for efficiently solving a k-SAT problem using analog circuit simulations. It is based on a theory described in the literature[1], and we developed it as part of our BTech Project in Shiv Nadar Institution of Eminence under the guidance of Dr. Venkatnarayan Hariharan.
+This code dynamically generates and simulates a circuit netlist for efficiently solving a k-SAT problem using analog circuit simulations. It is based on a theory described in the literature[1], and we (Sejal Singh and Bhavani Namrata) developed it as part of our BTech Project in Shiv Nadar Institution of Eminence under the guidance of Dr. Venkatnarayan Hariharan.
 
 ## Features
 - Input a matrix of clauses (rows) and variables (columns).
